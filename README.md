@@ -16,8 +16,8 @@
 <a href="https://www.hackerrank.com/honzik_kozeluh" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/hackerrank.svg" alt="honzik_kozeluh" height="30" width="40" /></a>
 </p>
 
-<p><img align="center" src="https://github-readme-stats.vercel.app/api/top-langs?username=jankozeluh&show_icons=true&locale=en&layout=compact" alt="jankozeluh" /></p>
+<p align="center"><img align="center" src="https://github-readme-stats.vercel.app/api/top-langs?username=jankozeluh&show_icons=true&locale=en&layout=compact" alt="jankozeluh" /></p>
 
-<p>&nbsp;<img align="center" src="https://github-readme-stats.vercel.app/api?username=jankozeluh&show_icons=true&locale=en" alt="jankozeluh" /></p>
+<p align="center">&nbsp;<img align="center" src="https://github-readme-stats.vercel.app/api?username=jankozeluh&show_icons=true&locale=en" alt="jankozeluh" /></p>
 
-<p><img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=jankozeluh&" alt="jankozeluh" /></p>
+<p align="center"><img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=jankozeluh&" alt="jankozeluh" /></p>
