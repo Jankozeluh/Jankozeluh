@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYPE GOD - Speed Typing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #E0E0E0;
+            font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; /* Monospaced for consistency */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        .container-card {
+            background-color: #1E1E1E; /* Slightly lighter than body for card effect */
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 700px; /* Max width for desktop */
+        }
+        .accent-color {
+            color: #F57C00; /* Pure Orange */
+        }
+        .button {
+            background-color: #F57C00; /* Pure Orange */
+            color: #FFFFFF; /* White text on orange button for better contrast */
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .button:hover {
+            background-color: #E65100; /* Darker Orange on hover */
+        }
+        nav a {
+            margin: 0 0.5rem;
+            cursor: pointer;
+            color: #A0A0A0; /* Lighter gray for nav links */
+            text-decoration: none;
+        }
+        nav a.active, nav a:hover {
+            color: #F57C00; /* Accent color for active/hover */
+        }
+        #code-display-area span {
+            white-space: pre-wrap; /* Preserve whitespace, wrap lines */
+        }
+        .caret {
+            display: inline-block;
+            width: 2px; /* Adjust width as needed */
+            height: 1.2em; /* Match line height */
+            background-color: #F57C00; /* Accent color */
+            animation: blink 1s step-start infinite;
+            margin-left: -1px; /* Fine-tune position */
+            vertical-align: text-bottom;
+            position: relative;
+            z-index: 10; /* Ensure caret is above text */
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .correct {
+            color: #66BB6A; /* Changed from #E0E0E0 to a green color */
+        }
+        .incorrect {
+            color: #FF4136; /* Red for incorrect characters */
+            text-decoration: underline;
+        }
+        .current {
+            /* Style for the character the caret is on, if needed */
+            background-color: rgba(245, 124, 0, 0.2); /* Light orange background */
+            border-radius: 2px;
+        }
+        /* Disable spellcheck/autocorrect for the typing area */
+        #typing-input-area, #code-display-area {
+            outline: none;
+            border: none;
+            caret-color: transparent; /* Hide native caret */
+        }
+        /* Hidden input field to capture keystrokes */
+        #hidden-input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        th {
+            background-color: #282828;
+        }
+        /* Hide scrollbar but keep functionality */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari and Opera */
+        }
+    </style>
+</head>
+<body>
+    <header class="text-center my-8">
+        <h1 class="text-4xl font-bold">TYPE<span class="accent-color">GOD</span></h1>
+    </header>
+
+    <nav class="mb-8">
+        <a href="#" id="nav-test" class="active">Test</a>
+        <a href="#" id="nav-history">History</a>
+    </nav>
+
+    <main id="app-content" class="container-card">
+        <!-- Test View -->
+        <section id="test-view">
+            <div class="flex justify-between items-center mb-4">
+                <div id="timer" class="text-2xl font-bold">03:00</div>
+                <button id="start-test-button" class="button">Start Test</button>
+            </div>
+            <div id="stats-display" class="flex justify-around mb-4 text-lg">
+                <div>WPM: <span id="wpm-value">0</span></div>
+                <div>CPM: <span id="cpm-value">0</span></div>
+                <div>Accuracy: <span id="accuracy-value">0</span>%</div>
+            </div>
+            <div 
+                id="code-display-area" 
+                class="p-4 bg-gray-800 rounded-md text-lg leading-relaxed mb-4 h-48 overflow-y-auto scrollbar-hide"
+                style="overflow: none;"
+                tabindex="0" 
+                autocorrect="off" 
+                autocapitalize="off" 
+                spellcheck="false"
+            >
+                <!-- Random code will appear here -->
+                <span class="text-gray-500">Click "Start Test" or start typing to begin...</span>
+            </div>
+            <input type="text" id="hidden-input"> <!-- Hidden input to capture keystrokes -->
+            <!-- Optional: Live stats update here if not above -->
+        </section>
+
+        <!-- History View (Initially Hidden) -->
+        <section id="history-view" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">Test History</h2>
+            <div id="history-table-container">
+                <!-- History table or sparkline chart will be rendered here -->
+                <p>No history yet. Complete a test to see your progress!</p>
+            </div>
+            <h3 class="text-xl font-bold mt-6 mb-2">Leaderboard (Top 5 WPM)</h3>
+            <div id="leaderboard-container">
+                <!-- Leaderboard will be rendered here -->
+                <p>No scores recorded for the leaderboard.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center mt-8 text-sm text-gray-500">
+        <p>TYPEGOD - Minimalist Coding Speed Typing</p>
+    </footer>
+
+    <script>
+        // --- DOM Elements ---
+        const navTest = document.getElementById('nav-test');
+        const navHistory = document.getElementById('nav-history');
+        const testView = document.getElementById('test-view');
+        const historyView = document.getElementById('history-view');
+        
+        const timerDisplay = document.getElementById('timer');
+        const startTestButton = document.getElementById('start-test-button');
+        const wpmValue = document.getElementById('wpm-value');
+        const cpmValue = document.getElementById('cpm-value');
+        const accuracyValue = document.getElementById('accuracy-value');
+        const codeDisplayArea = document.getElementById('code-display-area');
+        const hiddenInput = document.getElementById('hidden-input');
+
+        const historyTableContainer = document.getElementById('history-table-container');
+        const leaderboardContainer = document.getElementById('leaderboard-container');
+
+        // --- App State ---
+        let currentView = 'test'; // 'test' or 'history'
+        let testDuration = 3 * 60; // 3 minutes in seconds
+        let timerInterval;
+        let timeLeft = testDuration;
+        let testActive = false;
+        let generatedCode = "";
+        let typedText = "";
+        let charIndex = 0;
+        let correctChars = 0;
+        let totalCharsTyped = 0;
+        let testStartTime;
+
+        const codeSnippets = {
+            javascript: [
+                'const', 'let', 'var', 'function', '=>', '()', '{}', '[]', ';', ',', '.',
+                'if', 'else', 'for', 'while', 'return', 'import', 'export', 'default',
+                'async', 'await', 'try', 'catch', 'finally', 'class', 'extends', 'super',
+                'this', 'new', 'document', 'window', 'console.log', 'addEventListener',
+                'Array', 'Object', 'String', 'Number', 'Boolean', 'null', 'undefined', 'true', 'false'
+            ],
+            python: [
+                'def', 'class', 'import', 'from', 'if', 'elif', 'else', 'for', 'in', 'while',
+                'return', 'yield', 'try', 'except', 'finally', 'with', 'as', 'lambda',
+                'print', 'input', 'range', 'len', 'str', 'int', 'float', 'list', 'dict', 'set',
+                'True', 'False', 'None', 'and', 'or', 'not', 'is', ':', '(', ')', '[', ']', '{', '}', 'async', 'await'
+            ],
+            commonVars: ['i', 'j', 'k', 'x', 'y', 'z', 'count', 'index', 'item', 'value', 'data', 'arr', 'obj', 'el', 'node', 'foo', 'bar', 'baz', 'temp'],
+            punctuation: [' ', '  ', '\n', '(', ')', '{', '}', '[', ']', ';', ':', ',', '.', '=', '+', '-', '*', '/', '%', '==', '!=', '>', '<', '>=', '<='],
+            numbers: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '100', '0.5']
+        };
+        const allTokens = [
+            ...codeSnippets.javascript,
+            ...codeSnippets.python,
+            ...codeSnippets.commonVars,
+            ...codeSnippets.punctuation,
+            ...codeSnippets.numbers
+        ];
+
+        // --- UI Navigation ---
+        function showView(viewName) {
+            currentView = viewName;
+            if (viewName === 'test') {
+                testView.classList.remove('hidden');
+                historyView.classList.add('hidden');
+                navTest.classList.add('active');
+                navHistory.classList.remove('active');
+                // Focus hidden input when test view is shown and test is not active to allow starting by typing
+                if (!testActive) {
+                    codeDisplayArea.focus(); // Focus the display area to allow starting by typing
+                }
+            } else if (viewName === 'history') {
+                testView.classList.add('hidden');
+                historyView.classList.remove('hidden');
+                navTest.classList.remove('active');
+                navHistory.classList.add('active');
+                loadAndDisplayHistory();
+            }
+        }
+
+        navTest.addEventListener('click', (e) => { e.preventDefault(); showView('test'); });
+        navHistory.addEventListener('click', (e) => { e.preventDefault(); showView('history'); });
+
+        // --- Code Generation ---
+        function generateRandomCode(numChars = 250) { // Aim for a certain number of characters
+            let code = "";
+            while (code.length < numChars) {
+                const randomToken = allTokens[Math.floor(Math.random() * allTokens.length)];
+                code += randomToken;
+                // Add a space after most tokens, unless it's punctuation that doesn't need it or newline
+                if (!['\n', ' ', '  '].includes(randomToken) && Math.random() > 0.3) {
+                     if (code.length < numChars) code += ' ';
+                }
+                if (Math.random() < 0.05 && code.length < numChars) { // Occasionally add a newline
+                    code += '\n';
+                }
+            }
+            return code.substring(0, numChars).trim(); // Trim to ensure it's around numChars
+        }
+
+        function displayCode(code) {
+            codeDisplayArea.innerHTML = ''; // Clear previous code
+            generatedCode = code;
+            // Wrap each character in a span for individual styling
+            for (let i = 0; i < code.length; i++) {
+                const charSpan = document.createElement('span');
+                charSpan.textContent = code[i];
+                charSpan.id = `char-${i}`;
+                codeDisplayArea.appendChild(charSpan);
+            }
+            // Add initial caret
+            addCaret(0);
+        }
+        
+        function addCaret(index) {
+            removeCaret();
+            
+            // Remove current class from all characters
+            document.querySelectorAll('.current').forEach(el => {
+                el.classList.remove('current');
+            });
+            
+            const charSpan = document.getElementById(`char-${index}`);
+            if (charSpan) {
+                // Add current class to highlight the current character
+                charSpan.classList.add('current');
+                
+                const caretSpan = document.createElement('span');
+                caretSpan.classList.add('caret');
+                // Insert caret before the character if it's not the end of the line
+                // or after if it is the end of the line or end of text
+                if (index < generatedCode.length) {
+                    charSpan.parentNode.insertBefore(caretSpan, charSpan);
+                } else {
+                     codeDisplayArea.appendChild(caretSpan); // Caret at the very end
+                }
+            } else if (index === generatedCode.length) { // Caret at the end of the text
+                const caretSpan = document.createElement('span');
+                caretSpan.classList.add('caret');
+                codeDisplayArea.appendChild(caretSpan);
+            }
+        }
+
+        function removeCaret() {
+            const existingCaret = codeDisplayArea.querySelector('.caret');
+            if (existingCaret) {
+                existingCaret.remove();
+            }
+        }
+
+        // --- Typing Test Logic ---
+        function startTest() {
+            if (testActive) return;
+            testActive = true;
+            timeLeft = testDuration;
+            charIndex = 0;
+            correctChars = 0;
+            totalCharsTyped = 0;
+            typedText = "";
+            testStartTime = new Date();
+
+            generatedCode = generateRandomCode(300 + Math.floor(Math.random() * 100)); // Generate more code than typically typed in 3 mins
+            displayCode(generatedCode);
+            updateTimerDisplay();
+            resetStats();
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            startTestButton.textContent = "Test in Progress...";
+            startTestButton.disabled = true;
+            
+            hiddenInput.value = ""; // Clear hidden input
+            hiddenInput.focus();    // Focus hidden input to capture keystrokes
+            codeDisplayArea.classList.remove('text-gray-500'); // Remove placeholder styling
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                endTest();
+            }
+            // Live stats update (optional, can be intensive)
+            if (testActive) {
+                updateLiveStats();
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function endTest() {
+            clearInterval(timerInterval);
+            testActive = false;
+            calculateFinalStats();
+            saveTestResult();
+            loadAndDisplayHistory(); // Refresh history view if it's open or for next time
+            startTestButton.textContent = "Start Test";
+            startTestButton.disabled = false;
+            codeDisplayArea.innerHTML = `<span class="text-gray-500">Test ended! WPM: ${wpmValue.textContent}. Click "Start Test" for another round.</span>`;
+            removeCaret();
+            hiddenInput.blur(); // Remove focus from hidden input
+        }
+
+        function resetStats() {
+            wpmValue.textContent = "0";
+            cpmValue.textContent = "0";
+            accuracyValue.textContent = "0";
+        }
+
+        function calculateFinalStats() {
+            const timeElapsedMinutes = (testDuration - timeLeft) / 60;
+            if (timeElapsedMinutes === 0) {
+                resetStats();
+                return;
+            }
+
+            const grossWPM = (totalCharsTyped / 5) / timeElapsedMinutes;
+            const netWPM = (correctChars / 5) / timeElapsedMinutes; // More common WPM
+            const cpm = correctChars / timeElapsedMinutes;
+            const accuracy = totalCharsTyped > 0 ? (correctChars / totalCharsTyped) * 100 : 0;
+
+            wpmValue.textContent = Math.round(netWPM);
+            cpmValue.textContent = Math.round(cpm);
+            accuracyValue.textContent = accuracy.toFixed(1);
+        }
+        
+        function updateLiveStats() {
+            const currentTime = new Date();
+            const timeElapsedSeconds = (currentTime - testStartTime) / 1000;
+            if (timeElapsedSeconds === 0) return;
+
+            const timeElapsedMinutes = timeElapsedSeconds / 60;
+            
+            const currentWPM = (correctChars / 5) / timeElapsedMinutes;
+            const currentCPM = correctChars / timeElapsedMinutes;
+            const currentAccuracy = totalCharsTyped > 0 ? (correctChars / totalCharsTyped) * 100 : 0;
+
+            wpmValue.textContent = Math.round(currentWPM) || 0;
+            cpmValue.textContent = Math.round(currentCPM) || 0;
+            accuracyValue.textContent = currentAccuracy.toFixed(1) || 0;
+        }
+
+
+        // Event listener for the code display area to focus the hidden input
+        codeDisplayArea.addEventListener('click', () => {
+            if (!testActive) {
+                // Optionally start test on first click/type if desired
+                // startTest(); 
+            }
+            hiddenInput.focus();
+        });
+        
+        // Focus hidden input when typing anywhere if test is not active to start it
+        document.addEventListener('keydown', (e) => {
+            // Allow navigation keys (Tab, etc.) and functional keys (F5, etc.) to work normally
+            if (e.key.length > 1 && e.key !== 'Backspace' && e.key !== 'Enter' && e.key !== 'Spacebar') { // Spacebar is ' '
+                 return;
+            }
+            // If focus is already on an input or textarea, don't interfere
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                if (document.activeElement !== hiddenInput) return;
+            }
+
+            if (!testActive && currentView === 'test') {
+                // Check if the key is a character that should start the test
+                // (e.g. not Ctrl, Alt, Shift, Meta)
+                if (!e.ctrlKey && !e.altKey && !e.metaKey && e.key.length === 1) {
+                    startTest();
+                }
+            }
+            // Always ensure hiddenInput is focused if test is active
+            if (testActive) {
+                hiddenInput.focus();
+            }
+        });
+
+
+        hiddenInput.addEventListener('input', (e) => {
+            if (!testActive) return;
+
+            const currentTypedChar = e.target.value.slice(-1); // Get the last character typed
+            e.target.value = ""; // Clear the input field immediately
+
+            if (charIndex >= generatedCode.length) {
+                // Reached end of provided text, could extend or just stop
+                return; 
+            }
+
+            const expectedChar = generatedCode[charIndex];
+            const charSpan = document.getElementById(`char-${charIndex}`);
+
+            totalCharsTyped++;
+
+            if (currentTypedChar === expectedChar) {
+                charSpan.classList.add('correct');
+                charSpan.classList.remove('incorrect');
+                correctChars++;
+            } else {
+                charSpan.classList.add('incorrect');
+                charSpan.classList.remove('correct');
+                // Potentially add a penalty for errors if desired
+            }
+            
+            charIndex++;
+            
+            // Move caret
+            if (charIndex <= generatedCode.length) {
+                 addCaret(charIndex);
+            }
+
+            // Scroll into view
+            const currentActiveCharSpan = document.getElementById(`char-${charIndex}`) || document.getElementById(`char-${charIndex-1}`);
+            if (currentActiveCharSpan) {
+                currentActiveCharSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            if (charIndex === generatedCode.length) {
+                // End test when all text is typed
+                endTest();
+            }
+            updateLiveStats(); // Update stats on each key press
+        });
+        
+        // Handle backspace
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (!testActive) return;
+            if (e.key === 'Backspace') {
+                e.preventDefault(); // Prevent default backspace behavior (like navigating back)
+                if (charIndex > 0) {
+                    charIndex--;
+                    totalCharsTyped--; // Decrement total typed if considering backspace as undoing a char
+                    
+                    // Remove styling from the character being backspaced to
+                    const charSpan = document.getElementById(`char-${charIndex}`);
+                    if (charSpan) {
+                        charSpan.classList.remove('correct', 'incorrect');
+                    }
+                    
+                    // Move caret back
+                    addCaret(charIndex);
+                    
+                    // Scroll into view if needed
+                    const currentActiveCharSpan = document.getElementById(`char-${charIndex}`);
+                    if (currentActiveCharSpan) {
+                        currentActiveCharSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            } else if (e.key === 'Enter') {
+                // Handle Enter key as a special case
+                e.preventDefault(); // Prevent form submission
+                
+                // Manually trigger the input event with a newline character
+                const inputEvent = new InputEvent('input', {
+                    bubbles: true,
+                    cancelable: true,
+                    data: '\n'
+                });
+                
+                // Set a temporary value to trigger the input event
+                hiddenInput.value = '\n';
+                hiddenInput.dispatchEvent(inputEvent);
+                hiddenInput.value = ''; // Clear it immediately after
+            }
+        });
+
+
+        startTestButton.addEventListener('click', startTest);
+
+        // --- LocalStorage Persistence ---
+        function saveTestResult() {
+            const result = {
+                date: new Date().toISOString(),
+                wpm: parseInt(wpmValue.textContent),
+                cpm: parseInt(cpmValue.textContent),
+                accuracy: parseFloat(accuracyValue.textContent)
+            };
+
+            let history = JSON.parse(localStorage.getItem('typeGodHistory')) || [];
+            history.push(result);
+            // Optional: limit history size, e.g., last 100 tests
+            // if (history.length > 100) history.shift(); 
+            localStorage.setItem('typeGodHistory', JSON.stringify(history));
+        }
+
+        function loadAndDisplayHistory() {
+            const history = JSON.parse(localStorage.getItem('typeGodHistory')) || [];
+            
+            // Display History Table
+            if (history.length === 0) {
+                historyTableContainer.innerHTML = "<p>No history yet. Complete a test to see your progress!</p>";
+            } else {
+                // Display last 7-30 days, or all for now
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>WPM</th>
+                                <th>CPM</th>
+                                <th>Accuracy (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                // Show newest first
+                const recentHistory = history.slice().reverse().slice(0, 30); // Last 30 tests
+                recentHistory.forEach(r => {
+                    tableHTML += `
+                        <tr>
+                            <td>${new Date(r.date).toLocaleString()}</td>
+                            <td>${r.wpm}</td>
+                            <td>${r.cpm}</td>
+                            <td>${r.accuracy.toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += `</tbody></table>`;
+                historyTableContainer.innerHTML = tableHTML;
+            }
+
+            // Display Leaderboard (Top 5 WPM)
+            if (history.length === 0) {
+                leaderboardContainer.innerHTML = "<p>No scores recorded for the leaderboard.</p>";
+            } else {
+                const sortedByWPM = history.slice().sort((a, b) => b.wpm - a.wpm);
+                const top5 = sortedByWPM.slice(0, 5);
+                
+                let leaderboardHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Date</th>
+                                <th>WPM</th>
+                                <th>Accuracy (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                top5.forEach((r, index) => {
+                    leaderboardHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${new Date(r.date).toLocaleDateString()}</td>
+                            <td>${r.wpm}</td>
+                            <td>${r.accuracy.toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+                leaderboardHTML += `</tbody></table>`;
+                leaderboardContainer.innerHTML = leaderboardHTML;
+            }
+        }
+
+        // --- Initialization ---
+        function init() {
+            showView('test'); // Default view
+            // No need to load history here, it's loaded when switching to history view
+            // or after a test.
+            // Initial placeholder text
+            codeDisplayArea.innerHTML = '<span class="text-gray-500">Click "Start Test" or start typing to begin...</span>';
+        }
+
+        init();
+    </script>
+</body>
+</html>
